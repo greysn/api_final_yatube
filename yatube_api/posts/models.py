@@ -3,6 +3,8 @@ from django.db import models
 
 User = get_user_model()
 
+LENGHT: int = 15
+
 
 class Group(models.Model):
     title = models.CharField(max_length=200)
@@ -21,11 +23,11 @@ class Post(models.Model):
     image = models.ImageField(
         upload_to='posts/', null=True, blank=True)
     group = models.ForeignKey(
-        Group, on_delete=models.CASCADE,
+        Group, on_delete=models.SET_NULL,
         related_name="posts", blank=True, null=True)
 
     def __str__(self):
-        return self.text
+        return self.text[:LENGHT]
 
 
 class Comment(models.Model):
