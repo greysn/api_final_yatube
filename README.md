@@ -57,3 +57,4 @@ python manage.py migrate
  GET /api/v1/groups/
  ```
 
+# Автор проекта Мельников Сергей
