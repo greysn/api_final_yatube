@@ -9,7 +9,7 @@ from posts.models import Follow, Group, Post
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
+    queryset = Post.objects.prefetch_related('author', 'group')
     serializer_class = PostSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = LimitOffsetPagination
@@ -24,7 +24,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        return post.comments.all()
+        return post.comments.select_related('post')
 
     def perform_create(self, serializer):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
