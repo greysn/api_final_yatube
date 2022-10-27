@@ -9,7 +9,7 @@ from posts.models import Follow, Group, Post
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.prefetch_related('author', 'group')
+    queryset = Post.objects.select_related('author', 'group')
     serializer_class = PostSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = LimitOffsetPagination
