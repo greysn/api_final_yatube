@@ -1,15 +1,21 @@
 from django.shortcuts import get_object_or_404
+from django.db.models import Prefetch
 from rest_framework import filters, permissions, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (CommentSerializer, FollowSerializer, GroupSerializer,
                           PostSerializer)
-from posts.models import Follow, Group, Post
+from posts.models import Follow, Group, Post, Comment
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.select_related('author', 'group')
+    queryset = Post.objects.all().select_related('author').prefetch_related(
+        Prefetch(
+            'comments',
+            queryset=Comment.objects.all().select_related('author')
+        )
+    )
     serializer_class = PostSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = LimitOffsetPagination
@@ -23,8 +29,11 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrReadOnly,)
 
     def get_queryset(self):
-        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        return post.comments.select_related('post')
+        qs = Comment.objects.filter().select_related('author')
+        _post_id = self.kwargs.get('post_id')
+        if not _post_id:
+            return qs
+        return qs.filter(post_id=_post_id)
 
     def perform_create(self, serializer):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))

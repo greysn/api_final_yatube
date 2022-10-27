@@ -5,19 +5,6 @@ from rest_framework.validators import UniqueTogetherValidator, ValidationError
 from posts.models import Comment, Post, Group, Follow, User
 
 
-class PostSerializer(serializers.ModelSerializer):
-    author = SlugRelatedField(
-        slug_field='username',
-        read_only=True,
-        default=serializers.CurrentUserDefault()
-    )
-
-    class Meta:
-        fields = '__all__'
-        model = Post
-        read_only_fields = ('id', 'pub_date', 'author')
-
-
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
@@ -29,6 +16,24 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Comment
         read_only_fields = ('id', 'post', 'created', 'author')
+
+
+class PostSerializer(serializers.ModelSerializer):
+    author = SlugRelatedField(
+        slug_field='username',
+        read_only=True,
+        default=serializers.CurrentUserDefault()
+    )
+    comments = serializers.SerializerMethodField()
+
+    def get_comments(self, instance):
+        comments_qs = instance.comments.all()
+        return CommentSerializer(comments_qs, many=True).data
+
+    class Meta:
+        fields = '__all__'
+        model = Post
+        read_only_fields = ('id', 'pub_date', 'author', 'comments')
 
 
 class GroupSerializer(serializers.ModelSerializer):
